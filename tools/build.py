@@ -2,6 +2,7 @@
 """Build and package the plugin using a supplied SourceMod SDK (Windows/Linux)."""
 
 import argparse
+import re
 from pathlib import Path
 import subprocess
 import zipfile
@@ -32,26 +33,35 @@ def main():
     output = ROOT / "dist"
     output.mkdir(exist_ok=True)
     binary = output / "l4d2_chakra.smx"
+    helper = output / "l4d_CreateSurvivorBot.smx"
     # Never package a stale binary if compilation fails.
     binary.unlink(missing_ok=True)
-    archive = output / "l4d2-chakra-prototype.zip"
+    helper.unlink(missing_ok=True)
+    version = re.search(r'#define PLUGIN_VERSION "([0-9.]+)"', SOURCE.read_text()).group(1)
+    archive = output / f"l4d2-chakra-{version}.zip"
     archive.unlink(missing_ok=True)
     subprocess.run([str(compiler.resolve()), str(SOURCE), f"-i{includes}",
                     f"-o{binary}", "--warnings-as-errors"], cwd=ROOT, check=True)
+    subprocess.run([str(compiler.resolve()), str(SOURCE.parent / "l4d_CreateSurvivorBot.sp"),
+                    f"-i{includes}", f"-o{helper}", "--warnings-as-errors"], cwd=ROOT, check=True)
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as package:
         package.write(binary, "addons/sourcemod/plugins/l4d2_chakra.smx")
+        package.write(helper, "addons/sourcemod/plugins/l4d_CreateSurvivorBot.smx")
         for relative in (
             "cfg/sourcemod/l4d2_chakra.cfg",
-            "addons/sourcemod/scripting/l4d2_chakra.sp",
-            "addons/sourcemod/scripting/include/chakra_core.inc",
             "README.md",
             "docs/TESTING.md",
+            "THIRD_PARTY.md",
+            "LICENSE",
             "tools/build.py",
             "tools/bootstrap-linux.sh",
             "tools/test.py",
-            "tests/chakra_core_test.sp",
         ):
             package.write(ROOT / relative, relative)
+        for directory in ("addons/sourcemod/scripting", "addons/sourcemod/gamedata", "tests"):
+            for file in sorted((ROOT / directory).rglob("*")):
+                if file.is_file():
+                    package.write(file, file.relative_to(ROOT).as_posix())
     print(f"Plugin: {binary}")
     print(f"Install archive: {archive}")
 
