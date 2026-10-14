@@ -8,5 +8,5 @@ Compilation and 30 gameplay-math assertions passed. Actual L4D2 gameplay, partic
 
 SHA-256:
 
-- `l4d2-chakra-prototype.zip`: `db3d7c6b55e9aaeb297767a358811eff7799f09ef7184e3eb8a2c33c1ea22661`
+- `l4d2-chakra-prototype.zip`: `7396ff788001016e184b0cd0412e8ba63970bd0e3f33b2609bdb28d27edef961`
 - `l4d2_chakra.smx`: `f558444a0a833ed2e545a4a43fcd2f31e0399092548bfe9d48923009856e00e1`
